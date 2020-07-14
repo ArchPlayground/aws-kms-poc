@@ -1,0 +1,9 @@
+package com.archplaygroud.kms.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/decrypt")
+public class DecryptionController {
+}
