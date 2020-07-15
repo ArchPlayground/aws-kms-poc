@@ -3,12 +3,14 @@ package com.archplaygroud.kms.controller;
 import com.archplaygroud.kms.common.ControllerError;
 import com.archplaygroud.kms.dto.PathDTO;
 import com.archplaygroud.kms.service.DecryptionService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/decrypt")
+@Slf4j
 public class DecryptionController {
 
     @Autowired
@@ -23,6 +25,7 @@ public class DecryptionController {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public @ResponseBody ControllerError handleException(IllegalArgumentException errorDetails) {
+        log.error("Illegal Argument exception: {}", errorDetails.getMessage());
         return new ControllerError(errorDetails.getMessage());
     }
 }

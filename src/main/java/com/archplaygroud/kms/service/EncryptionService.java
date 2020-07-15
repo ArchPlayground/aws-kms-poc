@@ -4,6 +4,7 @@ import com.amazonaws.encryptionsdk.AwsCrypto;
 import com.amazonaws.encryptionsdk.CryptoResult;
 import com.amazonaws.encryptionsdk.kms.KmsMasterKey;
 import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.Map;
 import static com.archplaygroud.kms.common.CryptoConstants.ENCRYPTION_CONTEXT_KEY;
 
 @Service
+@Slf4j
 public class EncryptionService {
 
     private final AwsCrypto cryptoHandler;
@@ -34,6 +36,8 @@ public class EncryptionService {
      * @return bas64EncodedEncryptedPath
      */
     public String encryptPathWithSingleKey(String companyId, String path){
+        log.info("Going to encrypt : {}, for company: {}", path, companyId);
+
         // set encryption context and convert path to bytes
         Map<String, String> encryptionContext =
                 Collections.singletonMap(ENCRYPTION_CONTEXT_KEY, companyId);
@@ -43,6 +47,8 @@ public class EncryptionService {
         CryptoResult<byte[], KmsMasterKey> encryptionResult =
                 cryptoHandler.encryptData(mainCloudKeyProvider, pathData, encryptionContext);
         byte[] encryptedPath = encryptionResult.getResult();
+        log.info("Encryption successful.");
+
         return Base64.getEncoder().encodeToString(encryptedPath);
     }
 

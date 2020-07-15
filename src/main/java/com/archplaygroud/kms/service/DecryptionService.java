@@ -4,6 +4,7 @@ import com.amazonaws.encryptionsdk.AwsCrypto;
 import com.amazonaws.encryptionsdk.CryptoResult;
 import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import static com.archplaygroud.kms.common.CryptoConstants.ENCRYPTION_CONTEXT_KEY;
 
 @Service
+@Slf4j
 public class DecryptionService {
 
     private final AwsCrypto cryptoHandler;
@@ -33,14 +35,18 @@ public class DecryptionService {
      */
     @SneakyThrows
     public String decryptPathWithSingleKey(String companyId, String encryptedPath){
+        log.info("Going to decrypt : {}, for company: {}", encryptedPath, companyId);
         // get decrypted path
         byte[] decodedEncryptedPathBytes = Base64.getDecoder().decode(encryptedPath);
         CryptoResult<byte[], ?> decryptionResult = new AwsCrypto().decryptData(mainCloudKeyProvider, decodedEncryptedPathBytes);
 
         // throw an exception if incorrect company id
         if (!Objects.equals(decryptionResult.getEncryptionContext().get(ENCRYPTION_CONTEXT_KEY), companyId)) {
+            log.error("Invalid company id found. Expected {}, Found {}",
+                    decryptionResult.getEncryptionContext().get(ENCRYPTION_CONTEXT_KEY), companyId);
             throw new IllegalArgumentException("Company Id does not match");
         }
+        log.info("Decryption successful.");
 
         return new String(decryptionResult.getResult(), StandardCharsets.UTF_8);
     }
