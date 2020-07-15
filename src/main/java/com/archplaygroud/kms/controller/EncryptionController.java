@@ -1,9 +1,24 @@
 package com.archplaygroud.kms.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.archplaygroud.kms.dto.PathDTO;
+import com.archplaygroud.kms.service.EncryptionService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/encrypt")
+@Slf4j
 public class EncryptionController {
+
+    @Autowired
+    private EncryptionService encryptionService;
+
+    @PostMapping(path = "/{companyId}/filePath")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PathDTO createEncryptedPath(@PathVariable String companyId,
+                                   @RequestBody PathDTO pathDTO) {
+        return new PathDTO(encryptionService.encryptPathWithSingleKey(companyId, pathDTO.getPath()));
+    }
 }
