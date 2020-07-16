@@ -6,6 +6,7 @@ import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -15,6 +16,7 @@ import static com.archplaygroud.kms.common.CryptoConstants.ENCRYPTION_CONTEXT_KE
 
 @Service
 @Slf4j
+@Profile({"decryptor"})
 public class DecryptionService {
 
     private final AwsCrypto cryptoHandler;
