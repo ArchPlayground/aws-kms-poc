@@ -21,7 +21,13 @@ public class DecryptionController {
     @PostMapping(path = "/{companyId}/filePath")
     public PathDTO generateDecryptedPath(@PathVariable String companyId,
                                        @RequestBody PathDTO pathDTO) {
-        return new PathDTO(decryptionService.decryptPathWithSingleKey(companyId, pathDTO.getPath()));
+        return new PathDTO(decryptionService.decryptPath(companyId, pathDTO.getPath(), false));
+    }
+
+    @PostMapping(path = "/{companyId}/filePath/cached")
+    public PathDTO generateDecryptedPathUsingCachedKey(@PathVariable String companyId,
+                                         @RequestBody PathDTO pathDTO) {
+        return new PathDTO(decryptionService.decryptPath(companyId, pathDTO.getPath(), true));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
