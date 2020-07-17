@@ -55,6 +55,7 @@ cd using-cli
     - Key tagged as `testOnPremKey` is assigned to on-prem Vault in region-1 of Company A
     - Key tagged as `testOnPremKey2` is assigned to on-prem Vault in region-2 of Company A
 
+### Use Cases Covered
 - Application demonstrates these use cases using above keys:
     - AppServer (Encryptor running in cloud) should have access to encrypt the data using any of the 3 keys.
         - it enrypts data using `testKey` for companies that don't have a local vault setup. Company id is captured in the encryption context while encrypting.
@@ -76,6 +77,7 @@ cd using-cli
                - For every decryption request; same key is used.
                - Any decryption attempt for paths that belongs to Company A succeeds.
                - Any decryption attempt for paths that don't belong to Company A fails
+               
 - Additionally application also uses the Local Caching capabilities of `AWS Encryption Java SDK` to reduce the # of requests being sent to KMS. This is evident from this screenshot of CloudTrail logs:
     [![Screen-Shot-2020-07-17-at-3-16-36-AM.png](https://i.postimg.cc/k5XZzL3H/Screen-Shot-2020-07-17-at-3-16-36-AM.png)](https://postimg.cc/879trKCd)
     For about 50 local invocations; AWS received only 2 requests
