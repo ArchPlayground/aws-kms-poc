@@ -1,8 +1,8 @@
 package com.archplaygroud.kms.service;
 
 import com.amazonaws.encryptionsdk.AwsCrypto;
+import com.amazonaws.encryptionsdk.CryptoMaterialsManager;
 import com.amazonaws.encryptionsdk.CryptoResult;
-import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +15,17 @@ import static com.archplaygroud.kms.common.CryptoConstants.ENCRYPTION_CONTEXT_KE
 
 @Service
 @Slf4j
+/*
+ Decryptor (Vault in production) can be run on cloud or on prem
+ Any on prem Vault instance should be able to decrypt data with any key
+ on prem Vaults will only be able to decrypt using their own key
+ */
 public class DecryptionService {
 
-    private final AwsCrypto cryptoHandler;
-
     @Autowired
-    private KmsMasterKeyProvider mainCloudKeyProvider;
+    private CryptoProviderService cryptoProviderService;
+
+    private final AwsCrypto cryptoHandler;
 
     public DecryptionService(){
         cryptoHandler = new AwsCrypto();
@@ -28,17 +33,21 @@ public class DecryptionService {
 
     /**
      * Given a companyId and Base64 encoded encrypted path
-     * Returns a plaintext decrypted path using Main cloud key
+     * Returns a plaintext decrypted path
+     * // IMP: don't enable Spring caching on this method - we want this cached to be managed by KMS
      * @param companyId
      * @param encryptedPath
-     * @return bas64EncodedEncryptedPath
+     * @return plainTestDecryptedPath
      */
     @SneakyThrows
-    public String decryptPathWithSingleKey(String companyId, String encryptedPath){
+    public String decryptPath(String companyId, String encryptedPath){
         log.info("Going to decrypt : {}, for company: {}", encryptedPath, companyId);
+        CryptoMaterialsManager keyProvider = cryptoProviderService.companySpecificKeyProvider(companyId);
+
         // get decrypted path
         byte[] decodedEncryptedPathBytes = Base64.getDecoder().decode(encryptedPath);
-        CryptoResult<byte[], ?> decryptionResult = new AwsCrypto().decryptData(mainCloudKeyProvider, decodedEncryptedPathBytes);
+        CryptoResult<byte[], ?> decryptionResult =
+                cryptoHandler.decryptData(keyProvider, decodedEncryptedPathBytes);
 
         // throw an exception if incorrect company id
         if (!Objects.equals(decryptionResult.getEncryptionContext().get(ENCRYPTION_CONTEXT_KEY), companyId)) {

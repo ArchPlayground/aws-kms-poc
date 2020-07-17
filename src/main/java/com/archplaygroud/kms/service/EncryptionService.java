@@ -1,6 +1,7 @@
 package com.archplaygroud.kms.service;
 
 import com.amazonaws.encryptionsdk.AwsCrypto;
+import com.amazonaws.encryptionsdk.CryptoMaterialsManager;
 import com.amazonaws.encryptionsdk.CryptoResult;
 import com.amazonaws.encryptionsdk.kms.KmsMasterKey;
 import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
@@ -19,10 +20,10 @@ import static com.archplaygroud.kms.common.CryptoConstants.ENCRYPTION_CONTEXT_KE
 @Slf4j
 public class EncryptionService {
 
-    private final AwsCrypto cryptoHandler;
-
     @Autowired
-    private KmsMasterKeyProvider mainCloudKeyProvider;
+    private CryptoProviderService cryptoProviderService;
+
+    private final AwsCrypto cryptoHandler;
 
     public EncryptionService(){
         cryptoHandler = new AwsCrypto();
@@ -30,13 +31,15 @@ public class EncryptionService {
 
     /**
      * Given a companyId and plaintext path
-     * Returns Base64 encoded encrypted path encrypted using Main cloud key
+     * Returns Base64 encoded encrypted path encrypted
+     * // IMP: don't enable Spring caching on this method - we want this cached to be managed by KMS
      * @param companyId
      * @param path
      * @return bas64EncodedEncryptedPath
      */
-    public String encryptPathWithSingleKey(String companyId, String path){
+    public String encryptPath(String companyId, String path){
         log.info("Going to encrypt : {}, for company: {}", path, companyId);
+        CryptoMaterialsManager keyProvider = cryptoProviderService.companySpecificKeyProvider(companyId);
 
         // set encryption context and convert path to bytes
         Map<String, String> encryptionContext =
@@ -44,8 +47,8 @@ public class EncryptionService {
         byte[] pathData = path.getBytes(StandardCharsets.UTF_8);
 
         // get encrypted path in Base64 encoded string
-        CryptoResult<byte[], KmsMasterKey> encryptionResult =
-                cryptoHandler.encryptData(mainCloudKeyProvider, pathData, encryptionContext);
+        CryptoResult<byte[], ?> encryptionResult =
+                cryptoHandler.encryptData(keyProvider, pathData, encryptionContext);
         byte[] encryptedPath = encryptionResult.getResult();
         log.info("Encryption successful.");
 

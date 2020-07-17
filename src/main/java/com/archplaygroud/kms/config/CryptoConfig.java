@@ -1,19 +1,21 @@
 package com.archplaygroud.kms.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.amazonaws.encryptionsdk.caching.LocalCryptoMaterialsCache;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
-import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
 import org.springframework.context.annotation.Configuration;
 
+
+import static com.archplaygroud.kms.common.CryptoConstants.MAX_CACHE_CAPACITY;
+
 @Configuration
+@Slf4j
 public class CryptoConfig{
 
-    @Value("${kms.cloud.main.keyId}")
-    private String mainCloudKeyId;
-
     @Bean
-    public KmsMasterKeyProvider mainCloudKeyProvider(){
-        return KmsMasterKeyProvider.builder().withKeysForEncryption(mainCloudKeyId).build();
+    public LocalCryptoMaterialsCache cryptoMaterialsCache() {
+        log.info("Creating new cache instance with Capacity : {}", MAX_CACHE_CAPACITY);
+        return new LocalCryptoMaterialsCache(MAX_CACHE_CAPACITY);
     }
 
 }
